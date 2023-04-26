@@ -3,6 +3,11 @@ uuid = "4f646b45-cf22-4a17-b56e-8b4ce0652eb3"
 authors = ["Adrian Braemer <11058200+abraemer@users.noreply.github.com> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+SpinModels = "88a46c5d-b766-4f50-a717-9e2d8739cc37"
+
 [compat]
 julia = "1.8.4"
 
