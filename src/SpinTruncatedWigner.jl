@@ -432,6 +432,12 @@ end
 
 quantum(sps::SpinProductState) = reduce(kron, quantum.(sps.spinstates))
 
+function neelstate(N, axis=:z)
+    spinup = spinHalfup(axis)
+    spindown = spinHalfup(axis)
+    return SpinProductState([iseven(i) ? spindown : spinup for i in 1:N])
+end
+
 struct cTWAGaussianState
     # all per cluster!
     μs::Vector{Vector{Float64}} # expectation values
