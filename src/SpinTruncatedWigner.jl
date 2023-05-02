@@ -2,7 +2,7 @@ module SpinTruncatedWigner
 
 using LinearAlgebra, SparseArrays, SpinModels
 
-export dTWAParameters, cTWAGaussianState, cTWAParameters, ClusterBasis, twaSample
+export dTWAParameters, cTWAGaussianState, TWAParameters, ClusterBasis, twaSample
 
 abstract type AbstractTWAParameters end
 function twaUpdate! end
