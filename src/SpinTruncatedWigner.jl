@@ -1,6 +1,6 @@
 module SpinTruncatedWigner
 
-using LinearAlgebra, SparseArrays, SpinModels
+using LinearAlgebra, SparseArrays, SpinModels, SciMLBase
 
 export dTWAParameters, cTWAGaussianState, TWAParameters, ClusterBasis, twaSample
 
@@ -61,7 +61,7 @@ TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::AbstractSpinState, times) =
 TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::Vector, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
 function TWAProblem(cb::ClusterBasis, param::cTWAParameters, ψ0::cTWAGaussianState, times)
     problem = ODEProblem(twaUpdate!, ψ0, times, param)
-    ensemble = EnsembleProblem(cproblem;
+    ensemble = EnsembleProblem(problem;
 	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0)))
     return ensemble
 end
