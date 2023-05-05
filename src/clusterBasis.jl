@@ -142,4 +142,4 @@ for (sym, dir) in ((:XX, 1),
     end
 end
 
-_toclusterbasis(::Val{:Hopp}, coeff, cb) = _toclusterbasis(Val(:XX),coeff,cb)+_toclusterbasis(Val(:YY),coeff,cb)
+_toclusterbasis(::Val{:Hopp}, coeff, cb) = _toclusterbasis(Val(:XX),coeff/2,cb)+_toclusterbasis(Val(:YY),coeff/2,cb)
