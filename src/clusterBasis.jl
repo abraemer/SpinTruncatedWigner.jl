@@ -133,7 +133,7 @@ for (sym, dir) in ((:XX, 1),
             # TODO symmetry
             (I[1]==I[2] || coeff[I] == 0) && continue
             if sameCluster(cb,I[1],I[2])
-                L[lookupClusterOp(cb,(I[1],$dir),(I[2],$dir))] = coeff[I]
+                L[lookupClusterOp(cb,(I[1],$dir),(I[2],$dir))] = 2coeff[I]
             else
                 Q[lookupClusterOp(cb, (I[1],$dir)),lookupClusterOp(cb, (I[2],$dir))] = coeff[I]
             end
