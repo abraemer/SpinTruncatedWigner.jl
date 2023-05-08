@@ -194,7 +194,7 @@ function cTWAGaussianState(cb::ClusterBasis, firstMoments::Vector; cutoff=1e-10)
         end
         eigenDecomp = eigen(Symmetric(Σ))
         nonZeros = @. eigenDecomp.values .> cutoff
-        push!(σs, sqrt.(eigenDecomp.values[nonZeros]))
+        push!(σs, sqrt.(eigenDecomp.values[nonZeros] / 2))
         push!(Vs, eigenDecomp.vectors[:, nonZeros])
     end
     return cTWAGaussianState(μs, σs, Vs)
