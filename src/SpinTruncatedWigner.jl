@@ -50,7 +50,7 @@ TWAProblem(H::SpinModels.Hamiltonian, ψ0, times) = TWAProblem(TWAParameters(H),
 TWAProblem(H::dTWAParameters, ψ0::AbstractSpinState, times) = TWAProblem(H, classical(ψ0))
 function TWAProblem(param::dTWAParameters, ψ0::Matrix, times)
     problem = ODEProblem(twaUpdate!, ψ0, times, param)
-    ensemble = EnsembleProblem(cproblem;
+    ensemble = EnsembleProblem(problem;
 	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0)))
     return ensemble
 end
