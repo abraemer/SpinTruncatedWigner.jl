@@ -10,14 +10,16 @@ function twaUpdate!(ds, s, p::dTWAParameters, t)
     # L,Q = p.derivs
     # mul!(loc_deriv, Q, s)
     # loc_deriv += L
-    loc_deriv = 2p.Q*s
-    loc_deriv += p.L
+    loc_deriv = p.Lworkspace
+    mul!(loc_deriv, p.Q, s)
+    loc_deriv .*= 2
+    loc_deriv .+= p.L
     @inbounds for site in 1:length(ds)÷3
         l = @view loc_deriv[3site-2:3site]
         s2 = @view s[3site-2:3site]
-        ds[3site-2] =  2(s2[3]*l[2] - s[2]*l[3])
-        ds[3site-1] =  2(s2[1]*l[3] - s[3]*l[1])
-        ds[3site-0] =  2(s2[2]*l[1] - s[1]*l[2])
+        ds[3site-2] =  2(s2[3]*l[2] - s2[2]*l[3])
+        ds[3site-1] =  2(s2[1]*l[3] - s2[3]*l[1])
+        ds[3site-0] =  2(s2[2]*l[1] - s2[1]*l[2])
         # ds[3site-2] =  2dot(l, LEVI_CIVITA[1], s2)
         # ds[3site-1] =  2dot(l, LEVI_CIVITA[2], s2)
         # ds[3site-0] =  2dot(l, LEVI_CIVITA[3], s2)
