@@ -47,7 +47,7 @@ function twaSample(state::Matrix{T}, N) where T <: Real
     orthogonal = nullspace(Matrix(state'))
     ret = Matrix{T}(undef, length(state), N)
     for i in 1:N
-        ret[:, i] = state .+ sum(rand([-1, 1], 1, 2)  .* orthogonal, dims=2)
+        ret[:, i] = vec .+ sum(rand([-1, 1], 1, 2)  .* orthogonal, dims=2)
     end
     return vec(ret)
 end
@@ -57,7 +57,7 @@ function twaSample(state::Matrix{T}) where T <: Real
     ret = similar(state)
     for (i, vec) in enumerate(eachcol(state))
         orthogonal = nullspace(Matrix(vec'))
-        ret[:, i] = state .+ sum(rand([-1, 1], 1, 2)  .* orthogonal, dims=2)
+        ret[:, i] = vec .+ sum(rand([-1, 1], 1, 2)  .* orthogonal, dims=2)
     end
 
     return vec(ret)
