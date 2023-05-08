@@ -52,6 +52,17 @@ function twaSample(state::Matrix{T}, N) where T <: Real
     return vec(ret)
 end
 
+twaSample(state::Vector) = twaSample(reshape(state, 3, :))
+function twaSample(state::Matrix{T}) where T <: Real
+    ret = similar(state)
+    for (i, vec) in enumerate(eachcol(state))
+        orthogonal = nullspace(Matrix(vec'))
+        ret[:, i] = state .+ sum(rand([-1, 1], 1, 2)  .* orthogonal, dims=2)
+    end
+
+    return vec(ret)
+end
+
 abstract type AbstractSpinState end
 
 function classical end
