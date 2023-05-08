@@ -62,4 +62,4 @@ for (sym, inds) in ((:XX, :Xinds),
     end
 end
 
-_derivativeMatrix(::Val{:Hopp}, coeff) = _derivativeMatrix(Val(:XX),coeff)+_derivativeMatrix(Val(:YY),coeff)
+_derivativeMatrix(::Val{:Hopp}, coeff) = _derivativeMatrix(Val(:XX),coeff/2)+_derivativeMatrix(Val(:YY),coeff/2)
