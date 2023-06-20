@@ -2,7 +2,9 @@ module SpinTruncatedWigner
 
 using LinearAlgebra, SparseArrays, SpinModels, SciMLBase
 
-export dTWAParameters, cTWAGaussianState, TWAParameters, ClusterBasis, twaSample
+export SpinHalf, spinHalfdown, spinHalfup, CoherentSpinState, NeelState, SpinProductState
+export TWAParameters, TWAProblem, cTWAGaussianState
+export ClusterBasis, lookupClusterOp, reverseLookup
 
 abstract type AbstractTWAParameters end
 function twaUpdate! end
@@ -46,10 +48,10 @@ Construct the DifferentialEquations' Problem for solving the TWA. If a clusterin
 """
 function TWAProblem end
 
-TWAProblem(H::SpinModels.Hamiltonian, ψ0, times) = TWAProblem(TWAParameters(H), ψ0)
-TWAProblem(H::dTWAParameters, ψ0::AbstractSpinState, times) = TWAProblem(H, classical(ψ0))
+TWAProblem(H::SpinModels.Hamiltonian, ψ0, times) = TWAProblem(TWAParameters(H), ψ0, times)
+TWAProblem(H::dTWAParameters, ψ0::AbstractSpinState, times) = TWAProblem(H, classical(ψ0), times)
 function TWAProblem(param::dTWAParameters, ψ0::Matrix, times)
-    problem = ODEProblem(twaUpdate!, ψ0, times, param)
+    problem = ODEProblem(twaUpdate!, ψ0, (0, maximum(times)), param; saveat=times)
     ensemble = EnsembleProblem(problem;
 	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0)))
     return ensemble
@@ -60,7 +62,7 @@ TWAProblem(cb::ClusterBasis, H::SpinModels.Hamiltonian, ψ0, times) = TWAProblem
 TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::AbstractSpinState, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
 TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::Vector, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
 function TWAProblem(cb::ClusterBasis, param::cTWAParameters, ψ0::cTWAGaussianState, times)
-    problem = ODEProblem(twaUpdate!, ψ0, times, param)
+    problem = ODEProblem(twaUpdate!, ψ0, (0, maximum(times)), param; saveat=times)
     ensemble = EnsembleProblem(problem;
 	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0)))
     return ensemble

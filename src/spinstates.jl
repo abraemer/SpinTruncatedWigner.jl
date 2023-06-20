@@ -122,7 +122,7 @@ struct SpinProductState <: AbstractSpinState
     spinstates::Vector{SpinHalf}
 end
 
-function neelstate(N, axis=:z)
+function NeelState(N, axis=:z)
     spinup = spinHalfup(axis)
     spindown = spinHalfdown(axis)
     return SpinProductState([iseven(i) ? spindown : spinup for i in 1:N])
