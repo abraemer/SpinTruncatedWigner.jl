@@ -57,7 +57,7 @@ function TWAProblem(param::dTWAParameters, ψ0::Matrix, times)
     return ensemble
 end
 
-TWAProblem(clustering::Vector, H, ψ0, times) = TWAProblem(ClusterBasis(clustering), TWAParameters(H,cb), ψ0, times)
+TWAProblem(clustering::Vector, H, ψ0, times) = TWAProblem(ClusterBasis(clustering), H, ψ0, times)
 TWAProblem(cb::ClusterBasis, H::SpinModels.Hamiltonian, ψ0, times) = TWAProblem(cb, TWAParameters(H,cb), ψ0, times)
 TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::AbstractSpinState, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
 TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::Vector, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
