@@ -139,7 +139,36 @@ twaSample(sps::SpinProductState) = twaSample(classical(sps))
 convert(::Type{SpinProductState}, ss::SpinHalf) = SpinProductState([ss])
 convert(::Type{SpinProductState}, css::CoherentSpinState) = SpinProductState(fill(css.singleSpin,css.N))
 
-struct cTWAGaussianState
+abstract type AbstractCTWAState end
+
+struct cTWADiscreteState{T} <: AbstractCTWAState
+	clusterbasis::ClusterBasis
+	classicalstate::T
+	function cTWADiscreteState(clusterbasis::ClusterBasis, state::AbstractSpinState)
+		cTWADiscreteState(clusterbasis, classical(state))
+	end
+	function cTWADiscreteState(clustering::Vector, state)
+		cTWADiscreteState(ClusterBasis(clustering), state)
+	end
+	function cTWADiscreteState(clusterbasis::ClusterBasis, state)
+		new{typeof(state)}(clusterbasis, state)
+	end
+end
+
+function twaSample(state::cTWADiscreteState)
+	sample = twaSample(state.classicalstate)
+	ret = ones(length(state.clusterbasis))
+	for i in eachindex(ret)
+		contrib = reverseLookup(state.clusterbasis, i)
+		for (spinIndex, direction) in contrib
+			ret[i] *= sample[3*(spinIndex-1)+direction]
+		end
+	end
+	return ret
+end
+
+
+struct cTWAGaussianState <: AbstractCTWAState
     # all per cluster!
     μs::Vector{Vector{Float64}} # expectation values
     σs::Vector{Vector{Float64}} # variance eigenvalues

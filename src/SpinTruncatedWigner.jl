@@ -3,7 +3,7 @@ module SpinTruncatedWigner
 using LinearAlgebra, SparseArrays, SpinModels, SciMLBase
 
 export SpinHalf, spinHalfdown, spinHalfup, CoherentSpinState, NeelState, SpinProductState
-export TWAParameters, TWAProblem, cTWAGaussianState
+export TWAParameters, TWAProblem, cTWADiscreteState, cTWAGaussianState
 export ClusterBasis, lookupClusterOp, reverseLookup
 
 abstract type AbstractTWAParameters end
@@ -48,21 +48,16 @@ Construct the DifferentialEquations' Problem for solving the TWA. If a clusterin
 """
 function TWAProblem end
 
-TWAProblem(H::SpinModels.Hamiltonian, ψ0, times) = TWAProblem(TWAParameters(H), ψ0, times)
-TWAProblem(H::dTWAParameters, ψ0::AbstractSpinState, times) = TWAProblem(H, classical(ψ0), times)
-function TWAProblem(param::dTWAParameters, ψ0::Matrix, times)
-    problem = ODEProblem{true, SciMLBase.FullSpecialize}(twaUpdate!, ψ0, (0, maximum(times)), param; saveat=times)
-    ensemble = EnsembleProblem(problem;
-	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0)))
-    return ensemble
-end
+TWAProblem(H, ψ0::AbstractSpinState, times) = TWAProblem(TWAParameters(H), classical(ψ0), times)
+TWAProblem(H::SpinModels.Hamiltonian, ψ0::Matrix, times) = TWAProblem(TWAParameters(H), ψ0, times)
 
 TWAProblem(clustering::Vector, H, ψ0, times) = TWAProblem(ClusterBasis(clustering), H, ψ0, times)
-TWAProblem(cb::ClusterBasis, H::SpinModels.Hamiltonian, ψ0, times) = TWAProblem(cb, TWAParameters(H,cb), ψ0, times)
-TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::AbstractSpinState, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
-TWAProblem(cb::ClusterBasis, H::cTWAParameters, ψ0::Vector, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
-function TWAProblem(cb::ClusterBasis, param::cTWAParameters, ψ0::cTWAGaussianState, times)
-    problem = ODEProblem{true, SciMLBase.FullSpecialize}(twaUpdate!, ψ0, (0, maximum(times)), param; saveat=times)
+TWAProblem(cb::ClusterBasis, H, ψ0::AbstractSpinState, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
+TWAProblem(cb::ClusterBasis, H, ψ0::Vector, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
+TWAProblem(cb::ClusterBasis, H::SpinModels.Hamiltonian, ψ0::AbstractCTWAState, times) = TWAProblem(TWAParameters(H,cb), ψ0, times)
+
+function TWAProblem(param::AbstractTWAParameters, ψ0, times)
+    problem = ODEProblem{true, SciMLBase.FullSpecialize}(twaUpdate!, ψ0, (0, maximum(times)), param; saveat=sort(times))
     ensemble = EnsembleProblem(problem;
 	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0)))
     return ensemble
