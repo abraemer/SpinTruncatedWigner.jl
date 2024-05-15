@@ -1,6 +1,6 @@
 module SpinTruncatedWigner
 
-using LinearAlgebra, SparseArrays, SpinModels, SciMLBase
+using LinearAlgebra, Random, SparseArrays, SpinModels, SciMLBase
 
 export SpinHalf, spinHalfdown, spinHalfup, CoherentSpinState, NeelState, SpinProductState
 export TWAParameters, TWAProblem, cTWADiscreteState, cTWAGaussianState
@@ -48,18 +48,18 @@ Construct the DifferentialEquations' Problem for solving the TWA. If a clusterin
 """
 function TWAProblem end
 
-TWAProblem(H, ψ0::AbstractSpinState, times) = TWAProblem(TWAParameters(H), classical(ψ0), times)
-TWAProblem(H::SpinModels.Hamiltonian, ψ0::Matrix, times) = TWAProblem(TWAParameters(H), ψ0, times)
+TWAProblem(H, ψ0::AbstractSpinState, times; rng=Random.default_rng()) = TWAProblem(TWAParameters(H), classical(ψ0), times; rng)
+TWAProblem(H::SpinModels.Hamiltonian, ψ0::Matrix, times; rng=Random.default_rng()) = TWAProblem(TWAParameters(H), ψ0, times; rng)
 
-TWAProblem(clustering::Vector, H, ψ0, times) = TWAProblem(ClusterBasis(clustering), H, ψ0, times)
-TWAProblem(cb::ClusterBasis, H, ψ0::AbstractSpinState, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
-TWAProblem(cb::ClusterBasis, H, ψ0::Vector, times) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times)
-TWAProblem(cb::ClusterBasis, H::SpinModels.Hamiltonian, ψ0::AbstractCTWAState, times) = TWAProblem(TWAParameters(H,cb), ψ0, times)
+TWAProblem(clustering::Vector, H, ψ0, times; rng=Random.default_rng()) = TWAProblem(ClusterBasis(clustering), H, ψ0, times; rng)
+TWAProblem(cb::ClusterBasis, H, ψ0::AbstractSpinState, times; rng=Random.default_rng()) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times; rng)
+TWAProblem(cb::ClusterBasis, H, ψ0::Vector, times; rng=Random.default_rng()) = TWAProblem(cb, H, cTWAGaussianState(cb,ψ0), times; rng)
+TWAProblem(cb::ClusterBasis, H::SpinModels.Hamiltonian, ψ0::AbstractCTWAState, times; rng=Random.default_rng()) = TWAProblem(TWAParameters(H,cb), ψ0, times; rng)
 
-function TWAProblem(param::AbstractTWAParameters, ψ0, times)
+function TWAProblem(param::AbstractTWAParameters, ψ0, times; rng=Random.default_rng())
     problem = ODEProblem{true, SciMLBase.FullSpecialize}(twaUpdate!, ψ0, (0, maximum(times)), param; saveat=sort(times))
     ensemble = EnsembleProblem(problem;
-	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0)))
+	    prob_func = (prob, i, repeat) -> remake(prob; u0 = twaSample(prob.u0; rng)))
     return ensemble
 end
 

@@ -42,22 +42,22 @@ function sphericalToCartesian(θ, ϕ, r=1.0)
     [r*sin(θ)*cos(ϕ), r*sin(θ)*sin(ϕ), r*cos(θ)]
 end
 
-twaSample(state::Vector, N) = twaSample(reshape(state,:,1),N)
-function twaSample(state::Matrix{T}, N) where T <: Real
+twaSample(state::Vector, N; rng=Random.default_rng()) = twaSample(reshape(state,:,1),N; rng)
+function twaSample(state::Matrix{T}, N; rng=Random.default_rng()) where T <: Real
     orthogonal = nullspace(Matrix(state'))
     ret = Matrix{T}(undef, length(state), N)
     for i in 1:N
-        ret[:, i] = vec .+ sum(rand([-1, 1], 1, 2)  .* orthogonal, dims=2)
+        ret[:, i] = vec .+ sum(rand(rng, [-1, 1], 1, 2)  .* orthogonal, dims=2)
     end
     return vec(ret)
 end
 
-twaSample(state::Vector) = twaSample(reshape(state, 3, :))
-function twaSample(state::Matrix{T}) where T <: Real
+twaSample(state::Vector; rng=Random.default_rng()) = twaSample(reshape(state, 3, :); rng)
+function twaSample(state::Matrix{T}; rng=Random.default_rng()) where T <: Real
     ret = similar(state)
     for (i, vec) in enumerate(eachcol(state))
         orthogonal = nullspace(Matrix(vec'))
-        ret[:, i] = vec .+ sum(rand([-1, 1], 1, 2)  .* orthogonal, dims=2)
+        ret[:, i] = vec .+ sum(rand(rng, [-1, 1], 1, 2)  .* orthogonal, dims=2)
     end
 
     return vec(ret)
@@ -102,7 +102,7 @@ end
 classical(ss::SpinHalf) = sphericalToCartesian(ss.θ, ss.ϕ)
 quantum(ss::SpinHalf) = [cos(ss.θ/2), sin(ss.θ/2)*exp(im*ss.ϕ)]
 
-twaSample(ss::SpinHalf) = twaSample(classical(ss))
+twaSample(ss::SpinHalf; rng=Random.default_rng()) = twaSample(classical(ss); rng)
 
 struct CoherentSpinState <: AbstractSpinState
     singleSpin::SpinHalf
@@ -116,7 +116,7 @@ end
 
 quantum(css::CoherentSpinState) = expkron(quantum(css.singleSpin), css.N)
 
-twaSample(css::CoherentSpinState) = twaSample(classical(css))
+twaSample(css::CoherentSpinState; rng=Random.default_rng()) = twaSample(classical(css); rng)
 
 struct SpinProductState <: AbstractSpinState
     spinstates::Vector{SpinHalf}
@@ -134,7 +134,7 @@ end
 
 quantum(sps::SpinProductState) = reduce(kron, quantum.(sps.spinstates))
 
-twaSample(sps::SpinProductState) = twaSample(classical(sps))
+twaSample(sps::SpinProductState; rng=Random.default_rng()) = twaSample(classical(sps); rng)
 
 convert(::Type{SpinProductState}, ss::SpinHalf) = SpinProductState([ss])
 convert(::Type{SpinProductState}, css::CoherentSpinState) = SpinProductState(fill(css.singleSpin,css.N))
@@ -155,8 +155,8 @@ struct cTWADiscreteState{T} <: AbstractCTWAState
 	end
 end
 
-function twaSample(state::cTWADiscreteState)
-	sample = twaSample(state.classicalstate)
+function twaSample(state::cTWADiscreteState; rng=Random.default_rng())
+	sample = twaSample(state.classicalstate; rng)
 	ret = ones(length(state.clusterbasis))
 	for i in eachindex(ret)
 		contrib = reverseLookup(state.clusterbasis, i)
@@ -229,10 +229,10 @@ function cTWAGaussianState(cb::ClusterBasis, firstMoments::Vector; cutoff=1e-10)
     return cTWAGaussianState(μs, σs, Vs)
 end
 
-function twaSample(state::cTWAGaussianState)
+function twaSample(state::cTWAGaussianState; rng=Random.default_rng())
     percluster = Vector{Float64}[]
     for (μ,σ,V) in zip(state.μs, state.σs, state.Vs)
-        sample = randn(length(σ))
+        sample = randn(rng, length(σ))
         push!(percluster, μ .+ V * (σ .* sample))
     end
     return reduce(vcat, percluster)

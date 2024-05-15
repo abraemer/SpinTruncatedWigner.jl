@@ -1,10 +1,11 @@
 name = "SpinTruncatedWigner"
 uuid = "4f646b45-cf22-4a17-b56e-8b4ce0652eb3"
 authors = ["Adrian Braemer <11058200+abraemer@users.noreply.github.com> and contributors"]
-version = "1.1.0-DEV"
+version = "1.1.1-DEV"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SpinModels = "88a46c5d-b766-4f50-a717-9e2d8739cc37"
@@ -13,8 +14,8 @@ SpinModels = "88a46c5d-b766-4f50-a717-9e2d8739cc37"
 julia = "1.8.4"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test","OrdinaryDiffEq"]
+test = ["Test", "OrdinaryDiffEq"]
