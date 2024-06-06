@@ -27,7 +27,7 @@ Pkg.add(; url="https://github.com/abraemer/SpinTruncatedWigner.jl")
 For late times ($\mathcal O(100J)$), I recommend using `Vern7` or `Vern8` and definitively lower the default tolerances.
 
 ## Example:
-Let's compute the dynamics of the staggered x-magnetization in a nearest neighbour interacting XXZ chain starting from a Neel state in x-direction.
+Let's compute the dynamics of the staggered z-magnetization in a nearest neighbour interacting XXZ chain starting from a Neel state in z-direction.
 ```julia
 using SpinModels, SpinTruncatedWigner, OrdinaryDiffEq, Statistics
 
@@ -37,14 +37,14 @@ function staggered_magnetization(state; indices)
     return sum(state[indices[odd]]) - sum(state[indices[even]])
 end
 
-N = 6
-H = NN(Chain(N)) * XXZ(-0.7)
-psi0 = NeelState(N, :x)
-times = range(0, 20; length=100)
+N = 8
+H = NN(Chain(N)) * (XXZ(5))/5
+psi0 = NeelState(N, :z)
+times = range(0, 20; length=200)
 
 ## dTWA
 prob_dtwa = TWAProblem(H, psi0, times)
-sol_dtwa = solve(prob_dtwa, Vern7(); trajectories = 100, abstol=1e-9, reltol=1e-9)
+sol_dtwa = solve(prob_dtwa, Vern7(); trajectories = 1000, abstol=1e-9, reltol=1e-9)
 dtwa_magnetization_indices = 3:3:3N
 dtwa_result = [mean(s->staggered_magnetization(s; indices=dtwa_magnetization_indices), sol_dtwa(t)) for t in times]
 
@@ -52,8 +52,8 @@ dtwa_result = [mean(s->staggered_magnetization(s; indices=dtwa_magnetization_ind
 clustering = collect.(Iterators.partition(1:N,2)) # equivalent to [[1,2],[3,4],[5,6]]
 clusterbasis = ClusterBasis(clustering)
 cTWAstate = cTWADiscreteState(clusterbasis, psi0)
-prob_ctwa = TWAProblem(clusterbasis, H, psi0, times)
-sol_ctwa = solve(prob_ctwa, Vern7(); trajectories = 100, abstol=1e-9, reltol=1e-9)
+prob_ctwa = TWAProblem(clusterbasis, H, cTWAstate, times)
+sol_ctwa = solve(prob_ctwa, Vern7(); trajectories = 1000, abstol=1e-9, reltol=1e-9)
 ctwa_magnetization_indices = [lookupClusterOp(clusterbasis, (i, 3)) for i in 1:N]
 ctwa_result = [mean(s->staggered_magnetization(s; indices=ctwa_magnetization_indices), sol_ctwa(t)) for t in times]
 
@@ -61,20 +61,20 @@ ctwa_result = [mean(s->staggered_magnetization(s; indices=ctwa_magnetization_ind
 using LinearAlgebra, SparseArrays
 evals, U = eigen(Hermitian(Matrix(H)))
 D = Diagonal(evals)
-O = sparse(X((-1) .^ (0:N-1)))
+O = sparse(Z((-1) .^ (0:N-1)))
 Uψ0 = U'*SpinTruncatedWigner.quantum(psi0) # SpinTruncatedWigner.quantum converts the state into a quantum wavefunction
 ed_result = zeros(length(times))
 for (i,t) in enumerate(times)
     ψt = U*(cis(-D*t)*Uψ0)
-    res[i] = real(dot(ψt, O, ψt))
+    ed_result[i] = real(dot(ψt, O, ψt))
 end
 
 # plot with Makie
 using CairoMakie
 fig, ax, _ = lines(times, dtwa_result; label="dTWA")
 lines!(ax, times, ctwa_result; label="cTWA")
-lines!(ax, times, ctwa_result; label="ED", color=:black, linestyle=:dash)
+lines!(ax, times, ed_result; label="ED", color=:black, linestyle=:dash)
 axislegend(ax)
 display(fig)
 ```
-![Plot of the results. cTWA matches ED exactly, while dTWA shows strange revivals](readme.png)
+![Plot of the results. dTWA almost constant. cTWA follows ED data qualitatively.](readme.png)
